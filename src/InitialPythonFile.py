@@ -1,6 +1,10 @@
 def first_function(i):
-    return i*4*3*34*9023*3
-
+    return i
+  
+def first_function():
+    print("I got 4005 problems and a simulation ain't one")
+    print("Did I Git it right?")
+    print("I'm Slow")
 
 
 
