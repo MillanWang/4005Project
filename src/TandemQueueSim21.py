@@ -218,7 +218,7 @@ class Sim(object):
         
 """ set seed for random numer generator"""
 
-seed = input('Enter your seed:')
+seed = 0#input('Enter your seed:')
 
 np.random.seed((int(seed)))
                

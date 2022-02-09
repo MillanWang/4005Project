@@ -1,36 +1,39 @@
 import enum
-from sys import ps1
-import numpy as np
-from scipy.stats import expon
-from scipy.stats import norm
-import matplotlib.pyplot as plt
+# from sys import ps1
+# import numpy as np
+# from scipy.stats import expon
+# from scipy.stats import norm
+# import matplotlib.pyplot as plt
 import queue
-from dataclasses import dataclass, field
-from typing import Any
+# from dataclasses import dataclass, field
+# from typing import Any
 
 
-#Remove/Add #or True for easier enable/disable
-USER_CHOOSES_SEED =  False #or True 
+# Remove/Add #or True for easier enable/disable
+USER_CHOOSES_SEED = False  # or True
 
-class Product(enum):
+
+class Product(enum.Enum):
     P1 = 1
     P2 = 2
     P3 = 3
 
-class Component(enum):
+
+class Component(enum.Enum):
     C1 = 1
     C2 = 2
     C3 = 3
 
+
 class Workstation(object):
-    def __init__(self, ):
+    def __init__(self):
         self.name = 1
         self._departure = 2
         self._MeanServiceTime = 3.2
         self._SIGMA = 0.6
 
         self._QueueLength = 0
-        self._QueueLengthTime =[[0, 0.0]]
+        self._QueueLengthTime = [[0, 0.0]]
         self._NumberInService = 0
         self._InService = []
         self._LastEventTime = 0.0
@@ -39,47 +42,42 @@ class Workstation(object):
         self._SumResponseTime = 0.0
 
 
-
-
 class Simulation(object):
     def __init__(self):
         self._clock = 0
 
         self._future_event_list = queue.PriorityQueue()
-        
-        
+
         self._QueueID = 0
         self._NumberOfQueues = 2
         self._QList = []
-        
+
         # create a future event list
         self._FutureEventList = queue.Queue()
-        
+
 
 # Main script
-if __name__== "__main__":
-    
+if __name__ == "__main__":
 
-    #set seed for random number generator
+    # set seed for random number generator
     seed = 0
     if USER_CHOOSES_SEED:
         seed = input('Enter simulation seed:')
-    np.random.seed((int(seed)))
-                
+    # np.random.seed((int(seed)))
+
     # Create simulation object
     sim = Simulation()
-
+    print("Good")
 
 
 """
     Time for performace metrics. Eventual time optimizations
 import time
 start = time.time()
-#timed function here
+for i in rang(12000 * 100 * 100):
 end = time.time()
 print(end - start)
 """
-
 
 
 """
