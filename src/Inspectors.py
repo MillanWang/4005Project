@@ -71,7 +71,3 @@ class Inspector2(object):
     mean = mean(component)
     inspect_time = generate_inspect_time(component, mean)
     
-
-    # wait for delay
-    # Send Components to the correct buffer
-    # if there is no room signal that its blocked and wait until space opens
