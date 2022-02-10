@@ -1,7 +1,9 @@
 import numpy
 import random
 from SimulationEnums import Component
-
+"""
+Calculaltes the Mean for each component 
+"""
 
 def mean(self, component):
     if component == Component.C1:
@@ -15,17 +17,24 @@ def mean(self, component):
         datatotal += float(self.datalist[x])
     mean = datatotal / 300
     return mean
-
+"""
+Using the Mean, component a time withing the distribution is calculated 
+"""
 def generate_inspect_time(component, mean):
     time = numpy.random.exponential(mean, 1)[0]*60
     return time, component
 
-
+"""
+Class for inspector 1
+"""
 class Inspector1(object):
 
     def __init__(self, data):
         self.data = data
-    
+    """
+    function to create component 1s
+    """
+
     def __generate_comp1(self):
         return Component.C1
 
@@ -39,12 +48,16 @@ class Inspector1(object):
     # place Component in the buffer with the most space
     # if there is no room signal that its blocked and wait until space opens
 
-
+"""
+Class for Inspector2
+"""
 class Inspector2(object):
 
     def __init__(self, data):
         self.data = data
-
+    """
+    Randomly picks between component 2 and 3 
+    """
     def __generate_comp2or3(self):
         if random.getrandbits(1) == 1:
             return Component.C2
