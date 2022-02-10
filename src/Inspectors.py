@@ -1,4 +1,5 @@
 import numpy
+import os
 import random
 from SimulationEnums import Component
 """
@@ -7,7 +8,7 @@ Calculaltes the Mean for each component
 
 def mean(self, component):
     if component == Component.C1:
-        self.datalist = open("servinsp1.dat").read().splitlines()  
+        self.datalist = open("dat_files/servinsp1.dat").read().splitlines()  
     elif component == Component.C2:
         self.datalist = open("servinsp22.dat").read().splitlines()  
     else:
@@ -39,9 +40,9 @@ class Inspector1(object):
         return Component.C1
 
     # call generate_inspect1_time and generate_comp1
-    component = __generate_comp1()
-    mean = mean(component)
-    inspect_time = generate_inspect_time(component, mean )
+    # component = __generate_comp1()
+    # mean = mean(component)
+    # inspect_time = generate_inspect_time(component, mean )
 
     # wait for delay
     # Find Buffer with the most space
@@ -67,7 +68,15 @@ class Inspector2(object):
    
 
     # call generate comp2or3
-    component = __generate_comp2or3()
-    mean = mean(component)
-    inspect_time = generate_inspect_time(component, mean)
-    
+    # component = __generate_comp2or3()
+    # mean = mean(component)
+    # inspect_time = generate_inspect_time(component, mean)
+
+
+
+
+
+script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+rel_path = "dat_files/servinsp1.dat"
+abs_file_path = os.path.join(script_dir, rel_path)
+print(open(abs_file_path).read().splitlines())
