@@ -1,4 +1,4 @@
-import enum
+
 # from sys import ps1
 # import numpy as np
 # from scipy.stats import expon
@@ -11,18 +11,6 @@ import queue
 
 # Remove/Add #or True for easier enable/disable
 USER_CHOOSES_SEED = False  # or True
-
-
-class Product(enum.Enum):
-    P1 = 1
-    P2 = 2
-    P3 = 3
-
-
-class Component(enum.Enum):
-    C1 = 1
-    C2 = 2
-    C3 = 3
 
 
 class Workstation(object):
