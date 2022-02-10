@@ -1,6 +1,8 @@
 class Logger:
     __enable_inspector_logging = True
     __enable_workstation_logging = True
+
+    # In the future, python Logging module will be used to log messages to an output file, this flag will indicate if file logging is enabled or not. 
     __create_log_files = True
 
     def __init__(self, enable_inspector_logging, enable_workstation_logging, create_log_files):
@@ -16,7 +18,7 @@ class Logger:
 
     def log_inspector_buffered_component(component, workstation, time):
         if Logger.__enable_inspector_logging == True:
-            print("The inspector has placed" + component.name + " in " + workstation.name + "'s buffer at " + time + "s")
+            print("The inspector has placed " + component.name + " in " + workstation.name + "'s buffer at " + time + "s")
         else:
             return
 
@@ -28,7 +30,7 @@ class Logger:
     
     def log_product_created(product, time):
         if Logger.__enable_workstation_logging == True:
-            print(product.name + "has been completed at " + time + "s")
+            print(product.name + " has been completed at " + time + "s")
         else:
             return
 
