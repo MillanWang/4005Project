@@ -12,25 +12,29 @@ class Logger:
 
     def log_inspector_component_selection(component, time):
         if Logger.__enable_inspector_logging == True:
-            print("The inspector has started inspecting " + component.name + " at " + time + "s")
+            output = time + " - " + "The inspector has started inspecting " + component.name
+            print(output)
         else:
             return
 
     def log_inspector_buffered_component(component, workstation, time):
         if Logger.__enable_inspector_logging == True:
-            print("The inspector has placed " + component.name + " in " + workstation.name + "'s buffer at " + time + "s")
+            output = time + " - " + "The inspector has placed " + component.name + " in " + workstation.name + "'s buffer"
+            print(output)
         else:
             return
 
     def log_workstation_unbuffer(workstation, component, time):
         if Logger.__enable_workstation_logging == True:
-            print(component.name + " has entered " + workstation.name + " at time " + time + "s")
+            output = time + " - " + component.name + " has entered " + workstation.name
+            print(output)
         else:
             return
     
     def log_product_created(product, time):
         if Logger.__enable_workstation_logging == True:
-            print(product.name + " has been completed at " + time + "s")
+            output = time + " - " + product.name + " has been completed"
+            print(output)
         else:
             return
 
