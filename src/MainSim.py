@@ -1,17 +1,8 @@
-
-# from sys import ps1
-from msilib.schema import Error
 import numpy as np
-# from scipy.stats import expon
-# from scipy.stats import norm
-# import matplotlib.pyplot as plt # For data visualization
-# import simpy #Might be useful for simulation tools
 import queue
-# from dataclasses import dataclass, field
-# from typing import Any
 from SimulationEnums import Component, Product, Event_Types
 from SimulationLogger import SimulationLogger
-from Buffers import Component_Buffer, Component_Buffer_Manager
+from Buffers import Component_Buffer_Manager
 
 # Remove/Add #or True to feature flags for easier enable/disable
 USER_CHOOSES_SEED = False  # or True
@@ -29,7 +20,7 @@ class Simulation(object):
 
         # [Total, P1, P2, P3] - index matches product
         self._product_counts = [0, 0, 0, 0]
-        self._buffer_manager = Component_Buffer_Manager(simulation_logger)
+        self._buffer_manager = Component_Buffer_Manager()
 
     def schedule_add_to_buffer(self, inspector):
         return inspector
