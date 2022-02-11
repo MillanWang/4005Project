@@ -30,12 +30,12 @@ class SimulationLogger:
         else:
             return
 
-    def log_workstation_unbuffer(self, workstation, component, time):
+    def log_workstation_unbuffer(self, workstation, time):
         """
-            Given workstation, component, and time, log message when a component leaves the buffer and enters into the workstation
+            Given workstation, and time, log message when a workstation starts to build
         """
         if self.__enable_workstation_logging == True:
-            output = time + " - " + component.name + " has entered " + workstation.name
+            output = time + " - Workstation " + str(workstation.value) + " has started building " + workstation.name
             print(output)
         else:
             return
