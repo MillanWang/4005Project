@@ -1,6 +1,6 @@
 from SimulationEnums import Component, Product
-from MainSim import BUFFER_CAPACITY
 
+BUFFER_CAPACITY = 2
 
 class Component_Buffer(object):
     def __init__(self):
