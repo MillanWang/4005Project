@@ -1,25 +1,23 @@
 from multiprocessing.sharedctypes import Value
 import numpy
 import os
-import random
-from SimulationEnums import Component 
 from SimulationEnums import Product
 
 class Workstation(object):
     """
-    Class for Workstations
+        Class for Workstations
     """
 
     def __init__(self, product:Product):
         """
-        Ininital delclairation for the workstation class
+            Ininital delclairation for the workstation class
         """
         self.__mean = self.__build_distrubution_from_dat(product)
         self.__product = product
 
-    def __build_distrubution_from_dat(self, product):
+    def __build_distrubution_from_dat(self, product: Product):
         """
-        Calculaltes the distrubution for each products time to assemble returns the mean of the data set
+            Calculaltes the distrubution for each products time to assemble returns the mean of the data set
         """
         if product == Product.P1:
             rel_path = "dat_files/ws1.dat"
@@ -41,8 +39,8 @@ class Workstation(object):
     
     def get_unbuffer_time(self):
         """
-        Creates a inspection time delay from the distribution 
-        returns the delay time
+            Creates a inspection time delay from the distribution 
+            returns the delay time
         """
         time = numpy.random.exponential(self.__mean, 1)
         return time

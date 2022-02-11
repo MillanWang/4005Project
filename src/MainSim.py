@@ -5,10 +5,13 @@ from SimulationEnums import Component, Product, Event_Types
 from SimulationLogger import SimulationLogger
 from Buffers import Component_Buffer_Manager
 
-# Remove/Add #or True to feature flags for easier enable/disable
+# Remove/Add "#" from "# or True" to feature flags for easier enable/disable
 USER_CHOOSES_SEED = False  # or True
+ENABLE_INSPECTOR_LOGGING = False  # or True
+ENABLE_WORKSTATION_LOGGING = False  # or True
+CREATE_LOG_FILES = False  # or True
 
-PRODUCT_CREATION_LIMIT = 100
+TOTAL_PRODUCT_CREATION_LIMIT = 100
 BUFFER_CAPACITY = 2
 
 
@@ -31,13 +34,20 @@ class Simulation(object):
         self._buffer_manager = Component_Buffer_Manager()
 
     def schedule_add_to_buffer(self, inspector_number: int):
+        """
+            Initiates an inspector's inspection process and schedules 
+            the attempt to add the component to the buffer
+        """
         # inspect_time, component = self._inspectors[inspector_number].get_inspect_time()
-        inspect_time, component = 123
-        return 0
+        inspect_time, component = 123, inspector_number
+        completion_time = self._clock + inspect_time
+        self._future_event_list.put((completion_time, Event_Types.Inspection_Complete, component))
 
     def process_add_to_buffer(self, component: Component):
-        success, product = self._buffer_manager.attempt_to_add_to_buffer(
-            component)
+        """
+            Processes attempting to add an inspected component to a buffer
+        """
+        success, product = self._buffer_manager.attempt_to_add_to_buffer(component)
 
         if not success:
             # Inspector is blocked and can't add to buffer right now
@@ -45,6 +55,9 @@ class Simulation(object):
         return 0
 
     def process_workstation_unbuffer(self, product: Product):
+        """
+            Processes attempting to start assembling a product
+        """
         success = self._buffer_manager.attempt_to_assemble_product(product)
         if not success:
             # Could not build the product. Missing items on buffer
@@ -56,7 +69,7 @@ class Simulation(object):
 
     def process_product_made(self, product: Product):
         """
-            Processes the process of completeing the production of a product
+            Processes the completeing the a specified product's assembly
         """
         self._product_counts[0] += 1  # Total product counter
         self._product_counts[product.value] += 1  # Product specific counter
@@ -72,16 +85,33 @@ if __name__ == "__main__":
         seed = input('Enter simulation seed:')
     np.random.seed((int(seed)))
 
-    sim_logger = SimulationLogger(True, True, False)
+    sim_logger = SimulationLogger(
+        ENABLE_INSPECTOR_LOGGING,
+        ENABLE_WORKSTATION_LOGGING,
+        CREATE_LOG_FILES)
 
     # Create simulation object
     sim = Simulation(sim_logger)
 
-    # Schedule first inspection completion for both inspectors
+    # Schedule first inspection completion for both inspectors I1 & I2
+    sim.schedule_add_to_buffer(1)
+    sim.schedule_add_to_buffer(2)
 
-    while sim._product_counts[0] <= PRODUCT_CREATION_LIMIT:
+    while sim._product_counts[0] <= TOTAL_PRODUCT_CREATION_LIMIT:
+        # Get next event
         # Events (time, event_type, )
         evt = sim._future_event_list.get()
+
+        # update clock
         sim._clock = evt[0]
+
+        #Update event type discernation
+        if evt[1] == Event_Types.Inspection_Complete:
+            sim.process_add_to_buffer()
+        elif evt[1] == Event_Types.Unbuffer_Start_Assembly:
+            sim.process_workstation_unbuffer()
+        elif evt[1] == Event_Types.Assembly_Complete:
+            sim.process_product_made()
+        
 
         break  # TEMPORARY
