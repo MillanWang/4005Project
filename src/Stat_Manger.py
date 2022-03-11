@@ -95,20 +95,20 @@ class Stat_Manager(object):
         return
     
     
-    def weibull_quantile_calc(list, k, lamb, name):
+    def weibull_quantile_calc(self, k, lamb, name):
         result = []
-        for i in range(len(list)):
-            q = lamb * (-numpy.log(1-list[i]))**(1/k)
+        for i in range(len(self.__dat_file_contents[1])):
+            q = lamb * (-numpy.log(1-self.__dat_file_contents[1][i]))**(1/k)
             print(q)
             result.append(q)
             
-        Grapher.build_qq_plot(list, result, name)
+        Grapher.build_qq_plot(self.__dat_file_contents[1], result, name)
         
-    def expo_quantile_calc(list, lamb, name):
+    def expo_quantile_calc(self, lamb, name):
         result = []
-        for i in range(len(list)):
-            q = -(numpy.log(1-list[i]))/lamb
+        for i in range(len(self.__dat_file_contents[1])):
+            q = -(numpy.log(1-self.__dat_file_contents[1][i]))/lamb
             print(q)
             result.append(q)
         
-        Grapher.build_qq_plot(list, result, name)
+        Grapher.build_qq_plot(self.__dat_file_contents[1], result, name)
