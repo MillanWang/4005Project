@@ -39,18 +39,15 @@ class Grapher:
 
 
     '''
-    Takes an array of data and a title string, creates a qq plot
+    Takes two lists of data and plots them on the x and y axis respectively.
     
-    Example call: Grapher.build_qq_plot([1,2,3,4,5], "QQPlot")
+    Example call: Grapher.build_qq_plot([1,2,3,4,5], [1,2,3,4,5], "QQPlot")
     '''
-    def build_qq_plot(data, title):
-        # Creating qq plot
-        fig = sm.qqplot(data, line='45')
-
-        # Save plot to file
+    def build_qq_plot(list1, list2, title):
+        plt.scatter(list1, list2)
         name = title + '_' + date.today().strftime("%b-%d-%Y") + '_' + datetime.now().strftime("%H-%M-%S")
         filename = '../output/figures/' + name
-        plt.title(name)
+        plt.title(title)
         plt.savefig(filename, dpi=200, bbox_inches="tight", facecolor="white")
         plt.close()
 
