@@ -11,7 +11,7 @@ class Lecuyer_Generator(object):
         """
             Constructor for Lecuyer_Generator
         """
-        clean_seed = seed if seed!=0 else 1
+        clean_seed = seed if seed!=0 and seed<=2147483398 else 1
         self.__x2 = Multiplicative_Congruential_Model(clean_seed, 40692, 2147483399)
         clean_seed = self.__x2.get_next_x() + 1 #Guaranteed in range [1, 2147483562]
         self.__x1 = Multiplicative_Congruential_Model(clean_seed, 40014, 2147483563)
@@ -32,12 +32,50 @@ class Lecuyer_Generator(object):
         else:
             return generated_x / 2147483563
 
-def autocorrelation_test():
+def run_kolmogorov_smirnov_test():
+    """
+        Conducts a Kolmogorov-Smirnov test on a Lecuyer_Generator
+    """
+    print("Starting Kolmogorov-Smirnov test...")
+    D_table = 1.36/math.sqrt(100)
+
+    # Generate a list of 100 random numbers and the list of expected uniform cdf's
+    generator = Lecuyer_Generator(round(time.time()))
+    list_of_randoms = []
+    expected_cdf = []
+    for i in range(100):
+        expected_cdf.append((i+1)/100)
+        list_of_randoms.append(generator.get_next_r()) 
+
+    # Sort the list
+    list_of_randoms.sort()
+
+    #Instantiate the D lists with first elements (D_minus first element unique procedure)
+    D_plus = [expected_cdf[0]-list_of_randoms[0]]
+    D_minus = [list_of_randoms[0]]
+
+    for i in range(1,100):
+        D_plus.append(expected_cdf[i]-list_of_randoms[i])
+        D_minus.append(list_of_randoms[i]-expected_cdf[i-1])
+    print("Max D_plus value: " + str(max(D_plus)))
+    print("Max D_minus value: " + str(max(D_minus)))
+    print("D_table value to beat: " + str(D_table))
+    
+    if max(max(D_plus),max(D_plus)) < D_table:
+        print("Null Hypothesis is NOT rejected")
+        print("Kolmogorov-Smirnov test passed\n\n")
+        return True
+    else:
+        print("Null Hypothesis is REJECTED")
+        print("Kolmogorov-Smirnov test FAILED\n\n")
+        return False
+
+def run_autocorrelation_test():
     """
         Conducts an autocorrelation test on a Lecuyer_Generator instance
     """
     
-    print("\n\nStarting Autocorrelation test...")
+    print("Starting Autocorrelation test...")
 
     #Setup constants and variables
     clean_n = 1000
@@ -66,12 +104,15 @@ def autocorrelation_test():
     sigma_im = math.sqrt(13*big_M+7) / (12*(big_M+1))
     generated_z = (p_im/sigma_im)
     if generated_z < z_table_value :
-        print("Hypothesis is NOT rejected")
+        print("Null Hypothesis is NOT rejected")
         print("Autocorrelation test passed with M="+str(big_M)+" and Z="+str(generated_z)+"\n\n")
         return True
     else:
-        print("Hypothesis is rejected")
+        print("Null Hypothesis is REJECTED")
         print("Autocorrelation test failed with M="+str(big_M)+" and Z="+str(generated_z)+"\n\n")
         return False 
 
-autocorrelation_test()
+
+
+run_kolmogorov_smirnov_test()
+run_autocorrelation_test()
