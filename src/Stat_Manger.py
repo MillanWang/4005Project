@@ -40,9 +40,9 @@ class Stat_Manager(object):
         datalist_Float = [float(i) for i in datalist]
         intlist = [i * 1000 for i in datalist_Float]
         intlist = [int(x) for x in intlist]
-        sum = sum(intlist)
+        sample_sum = sum(intlist)
         count = len(intlist)
-        mean = sum/count
+        mean = sample_sum/count
         variance = numpy.var(intlist)
         qq_list = sorted(intlist)
         #print("List Data type: " ,type(intlist[5]))
