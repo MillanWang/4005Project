@@ -103,6 +103,7 @@ class Stat_Manager(object):
                 if elem>(i)*bin_width and elem<=(i+1)*bin_width:
                     observed_frequencies[i]+=1
 
+
         #Last element in the list is sometimes wonky. It's sorted so add it to last bin
         if len(observed_frequencies)<len(sorted_data) : observed_frequencies[-1]+=1
         chi_components = []
@@ -125,6 +126,34 @@ class Stat_Manager(object):
 
 
 
+
+    def parameter_estimation():
+        return
+    
+    
+    def weibull_quantile_calc(self, k, lamb, name):
+        result = []
+        listItem = self.__dat_file_contents[1]
+        for i in range(len(listItem)):
+            p = i/300
+            q = lamb * (-numpy.log(1-p))**(1/k)
+            print(q)
+            result.append(q)
+            
+        Grapher.build_qq_plot(listItem, result, name)
+        
+    def expo_quantile_calc(self, lamb, name):
+        result = []
+        listItem = self.__dat_file_contents[1]
+        for i in range(len(listItem)):
+            p = i/300
+            q = -(numpy.log(1-p))/lamb
+            print(q)
+            result.append(q)
+        
+        Grapher.build_qq_plot(listItem, result, name)
+
+        
 def weibull_cdf(x,k,b):
     return 1 - math.exp(-b*math.pow(x,k))
 
