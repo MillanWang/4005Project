@@ -93,3 +93,24 @@ class Stat_Manager(object):
 
     def parameter_estimation():
         return
+    
+    
+    def weibull_quantile_calc(list, k, lamb, name):
+        result = []
+        for i in range(len(list)):
+            q = lamb * (-numpy.log(1-list[i]))**(1/k)
+            print(q)
+            result.append(q)
+            
+        Grapher.build_qq_plot(list, result, name)
+        
+    def expo_quantile_calc(list, lamb, name):
+        result = []
+        for i in range(len(list)):
+            q = -(numpy.log(1-list[i]))/lamb
+            print(q)
+            result.append(q)
+        
+        Grapher.build_qq_plot(list, result, name)
+
+        
