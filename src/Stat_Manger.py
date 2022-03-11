@@ -33,16 +33,16 @@ class Stat_Manager(object):
             rel_path = "ws2.dat"
         elif (dat_file == 6):
             rel_path = "ws3.dat"
-        abs_file_path = os.path.join(script_dir, rel_path)
+        abs_file_path = os.path.join(script_dir, "dat_files\\"+rel_path)
         datalist = open(abs_file_path).read().splitlines()
         
         datalist = [x.strip(' ') for x in datalist]
         datalist_Float = [float(i) for i in datalist]
         intlist = [i * 1000 for i in datalist_Float]
         intlist = [int(x) for x in intlist]
-        sum = sum(intlist)
+        sample_sum = sum(intlist)
         count = len(intlist)
-        mean = sum/count
+        mean = sample_sum/count
         variance = numpy.var(intlist)
         qq_list = sorted(intlist)
         #print("List Data type: " ,type(intlist[5]))
@@ -112,5 +112,3 @@ class Stat_Manager(object):
             result.append(q)
         
         Grapher.build_qq_plot(list, result, name)
-
-        
