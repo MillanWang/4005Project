@@ -23,7 +23,7 @@ class Grapher:
 
         # Calculating number of bins
         q25, q75 = np.percentile(data, [25, 75])
-        bin_width = 2 * (q75 - q25) * len(x) ** (-1/3)
+        bin_width = 2 * (q75 - q25) * len(data) ** (-1/3)
         bins = round((data.max() - data.min()) / bin_width)
 
         # Creating histogram
