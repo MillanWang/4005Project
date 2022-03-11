@@ -1,7 +1,7 @@
 import numpy
 import os
 import random
-from SimulationEnums import Component
+from Grapher import Grapher
 
 
 class Stat_Manager(object):
@@ -10,35 +10,48 @@ class Stat_Manager(object):
         Class for Stat_Manager
 
     """
-    def __init__(self, datFile):
+    def __init__(self, fileSelect):
         """
             intilazation of the Stat_Manager class 
         """
+        self.__datFile= self.compute_stats(fileSelect)
     def compute_stats(fileSelect):
         """
             Inputs dataFile and Calculates Stats for other functions
         """
         
         script_dir = os.path.dirname(__file__) #this is to access the data files in their folder 
-        rel_path = "servinsp1.dat" # this needs to change
+        if (fileSelect == 1):
+            rel_path = "servinsp1.dat" 
+        elif (fileSelect == 2):
+            rel_path = "servinsp22.dat" 
+        elif (fileSelect == 3):
+            rel_path = "servinsp23.dat" 
+        elif (fileSelect == 4):
+            rel_path = "ws1.dat"
+        elif (fileSelect == 5):
+            rel_path = "ws2.dat"
+        elif (fileSelect == 6):
+            rel_path = "ws3.dat"
         abs_file_path = os.path.join(script_dir, rel_path)
         datalist = open(abs_file_path).read().splitlines()
         
         datalist = [x.strip(' ') for x in datalist]
-        #datalist_Filterd = filter(None, datalist)
         datalist_Float = [float(i) for i in datalist]
-
-        sum = sum(map(float,datalist))
-        count = len(datalist)
+        intlist = [i * 1000 for i in datalist_Float]
+        intlist = [int(x) for x in intlist]
+        sum = sum(intlist)
+        count = len(intlist)
         mean = sum/count
-        variance = numpy.var(datalist_Float)
-        qq_list = sorted(datalist_Float)
-        print("List Data type: " ,type(datalist_Float[5]))
+        variance = numpy.var(intlist)
+        qq_list = sorted(intlist)
+        print("List Data type: " ,type(intlist[5]))
         print("Count: " , count)
         print("Sum: " , sum)
         print("Mean: " , mean)
         print("Variance: " , variance)
         print("Sorted list: ", qq_list)
+        print(intlist)
     
 
 
@@ -49,16 +62,19 @@ class Stat_Manager(object):
         return     
 
 
-    def __qq_plot():
+    def __qq_plot(self):
         """
         Send required Data to plot the qq-polot to the Graph_Master class 
         
         """
-
+        datFile = self.__datFile
+        qq_list = sorted(datFile)
+        
+        Grapher.build_qq_plot(qq_list, "QQPlot")
         return
 
         
-    def __hypothesis_testing(self, Hypoth):
+    def __hypothesis_testing(self):
         """
         Input User Hypothesis and output a comparison to the simulation results
         """
@@ -66,14 +82,16 @@ class Stat_Manager(object):
         return
 
 
-    def __generate_histogram(self,):
+    def __generate_histogram(self):
         """
         Send required Data to plot the Histogram to the Graph_Master class 
         """
+        datFile = self.__datFile
+        Grapher.build_histogram(datFile, "Histogram")
         return
     def __chi_squared(self,):
         """
-        Calculate teh Chi Squared Value
+        Calculate the Chi Squared Value
         For each time in the list call the random generator of that 
         distribution to get a second value. each set of values  
         
