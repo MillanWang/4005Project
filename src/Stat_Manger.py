@@ -8,14 +8,15 @@ import numpy as np
 class Stat_Manager(object):
 
     """
-        Class for Stat_Manager
-
+        Class for managing statistics given sample data .dat files
     """
     def __init__(self, dat_file):
         """
             intilazation of the Stat_Manager class 
         """
-        self.__dat_file_contents = self.compute_stats(dat_file) 
+        self.__dat_file_contents = self.compute_stats(dat_file)
+
+
     def compute_stats(self, dat_file):
         """
             Inputs dataFile and Calculates Stats for other functions
@@ -45,27 +46,9 @@ class Stat_Manager(object):
         count = len(intlist)
         mean = sample_sum/count
         variance = numpy.var(intlist)
-        qq_list = sorted(intlist)
-        #print("List Data type: " ,type(intlist[5]))
-        #print("Count: " , count)
-        #print("Sum: " , sum)
-        #print("Mean: " , mean)
-        #print("Variance: " , variance)
-        #print("Sorted list: ", qq_list)
-        #print(intlist)
-    
+        sorted_list = sorted(intlist)
 
-        return (intlist,qq_list, mean, variance, count, sample_sum)
-
-
-    def qq_plot(self):
-        """
-        Send required Data to plot the qq-polot to the Graph_Master class 
-        
-        """
-        
-        Grapher.build_qq_plot(self.__dat_file_contents[1], "QQPlot")
-        return
+        return (intlist, sorted_list, mean, variance, count, sample_sum)
 
 
     def generate_histogram(self):
@@ -74,11 +57,18 @@ class Stat_Manager(object):
         """
         Grapher.build_histogram(self.__dat_file_contents[0], "Histogram")
 
+
+    def qq_plot(self):
+        """
+        Send required Data to plot the qq-polot to the Graph_Master class 
+        
+        """
+        Grapher.build_qq_plot(self.__dat_file_contents[1], "QQPlot")
+
+
     def exponential_chi_squared(self):
         """
-        Calculate the Chi Squared Value
-        For each time in the list call the random generator of that 
-        distribution to get a second value. each set of values  
+            Conduct a chi squared test, checking for fit with an exponential distribution
         
         """
         # (intlist,qq_list, mean, variance, count, sample_sum)
@@ -94,7 +84,7 @@ class Stat_Manager(object):
 
         expected_frequencies = []
         for i in range(k_intervals+1):
-            expected_frequencies.append((exponential_cdf(i+1,exponential_lambda)-exponential_cdf(i,exponential_lambda))*300)
+            expected_frequencies.append((self.exponential_cdf(i+1,exponential_lambda)-self.exponential_cdf(i,exponential_lambda))*300)
             
         observed_frequencies = []
         for i in range(k_intervals-1):
@@ -124,14 +114,58 @@ class Stat_Manager(object):
         print(sum(expected_frequencies))
 
 
+    def weibull_chi_squared(self):
+        """
+        Conduct a chi squared test, checking for fit with weibull distribution
+        """
+        # (intlist,qq_list, mean, variance, count, sample_sum)
+        # self.__dat_file_contents
+        sorted_data = self.__dat_file_contents[1]
+        print(sorted_data[-1])
+        # Calculating number of bins and bin width
+        q25, q75 = np.percentile(sorted_data, [25, 75])
+        bin_width = 2 * (q75 - q25) * len(sorted_data) ** (-1/3)
+        k_intervals = round((max(sorted_data) - min(sorted_data)) / bin_width)
 
 
+        weibull_k = 1
+        weibull_b = 1
 
-    def parameter_estimation():
-        return
-    
+        expected_frequencies = []
+        for i in range(k_intervals+1):
+            expected_frequencies.append((self.weibull_cdf(i+1,weibull_k,weibull_b)-self.weibull_cdf(i,weibull_k,weibull_b))*300)
+            
+        observed_frequencies = []
+        for i in range(k_intervals-1):
+            observed_frequencies.append(0)
+            for elem in sorted_data:
+                if elem>(i)*bin_width and elem<=(i+1)*bin_width:
+                    observed_frequencies[i]+=1
+
+
+        #Last element in the list is sometimes wonky. It's sorted so add it to last bin
+        if len(observed_frequencies)<len(sorted_data) : observed_frequencies[-1]+=1
+        chi_components = []
+        for i in range(len(observed_frequencies)):
+            chi_components.append( math.pow(observed_frequencies[i]-expected_frequencies[i],2) / expected_frequencies[i])
+        
+
+        # All dat files in this project have 300 datapoints. 
+        chi_squared_table_value = 339.26047583
+        if chi_squared_table_value >sum(chi_components):
+            print("Null hypothesis NOT rejected - Can assume distributions match")
+        else:
+            print("Null hypothesis REJECTED - Distributions don't match")
+        print(sum(chi_components))
+        print(observed_frequencies)
+        print(expected_frequencies)
+        print(sum(observed_frequencies))
+        print(sum(expected_frequencies))
     
     def weibull_quantile_calc(self, k, lamb, name):
+        """
+            Calculates the quantile of a weibull distribution
+        """
         result = []
         listItem = self.__dat_file_contents[1]
         for i in range(len(listItem)):
@@ -141,8 +175,12 @@ class Stat_Manager(object):
             result.append(q)
             
         Grapher.build_qq_plot(listItem, result, name)
-        
+
+
     def expo_quantile_calc(self, lamb, name):
+        """
+            Calculattes the qualtile of an exponential distribution
+        """
         result = []
         listItem = self.__dat_file_contents[1]
         for i in range(len(listItem)):
@@ -154,10 +192,16 @@ class Stat_Manager(object):
         Grapher.build_qq_plot(listItem, result, name)
 
         
-def weibull_cdf(x,k,b):
-    return 1 - math.exp(-b*math.pow(x,k))
+    def weibull_cdf(x,k,b):
+        """
+            Calculates the cumulative frequency from a weibull distribution
+        """
+        return 1 - math.exp(-b*math.pow(x,k))
 
 
 
-def exponential_cdf(x,ld):
-    return 1 - math.exp(-x*ld)
+    def exponential_cdf(x,ld):
+        """
+            Calculates the cumulative frequency of an exponential distribution
+        """
+        return 1 - math.exp(-x*ld)
