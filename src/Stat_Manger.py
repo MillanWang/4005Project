@@ -33,7 +33,7 @@ class Stat_Manager(object):
             rel_path = "ws2.dat"
         elif (dat_file == 6):
             rel_path = "ws3.dat"
-        abs_file_path = os.path.join(script_dir, rel_path)
+        abs_file_path = os.path.join(script_dir, "dat_files\\"+rel_path)
         datalist = open(abs_file_path).read().splitlines()
         
         datalist = [x.strip(' ') for x in datalist]
@@ -93,3 +93,4 @@ class Stat_Manager(object):
 
     def parameter_estimation():
         return
+x= Stat_Manager(1)
