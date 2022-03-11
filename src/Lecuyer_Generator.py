@@ -116,13 +116,3 @@ def run_autocorrelation_test():
 
 run_kolmogorov_smirnov_test()
 run_autocorrelation_test()
-
-
-aTestFails=[]
-for i in range(1000):
-    time.sleep(1)
-    if not run_kolmogorov_smirnov_test():
-        print("FAILED TEST #"+str(i))
-        aTestFails.append(i)
-print("FAILS")
-print(aTestFails)
