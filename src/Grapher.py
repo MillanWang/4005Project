@@ -40,7 +40,7 @@ class Grapher:
         plt.savefig(filename, dpi=200, bbox_inches="tight", facecolor="white")
         plt.close()
 
-
+    
     def build_qq_plot(list1, list2, title):
         """
             Takes two lists of data and plots them on the x and y axis respectively.
@@ -48,12 +48,13 @@ class Grapher:
             Example call: Grapher.build_qq_plot([1,2,3,4,5], [1,2,3,4,5], "QQPlot")
         """
         plt.scatter(list1, list2)
-        name = title + '_' + date.today().strftime("%b-%d-%Y") + '_' + datetime.now().strftime("%H-%M-%S")
-        filename = '../output/figures/' + name
+        plt.axline([0, 0], [1, 1])
+        # name = title + '_' + date.today().strftime("%b-%d-%Y") + '_' + datetime.now().strftime("%H-%M-%S")
+        # filename = '../output/figures/' + name
         plt.title(title)
-        plt.savefig(filename, dpi=200, bbox_inches="tight", facecolor="white")
-        plt.close()
-
+        # plt.savefig(filename, dpi=200, bbox_inches="tight", facecolor="white")
+        # plt.close()
+        plt.show()
 
     def build_poission(lamb, title):
         """
@@ -196,16 +197,7 @@ class Grapher:
 
 
 # Keep for testing
-
-
 # np.random.seed(42)
 # x = np.random.normal(size=1000)
 # Grapher.build_histogram(x, "testHistogram")
-# Grapher.build_qq_plot(x, "testQQPlot")
-# Grapher.build_poission([10, 5, 6], "testPoisson")
-# Grapher.build_normal(3,1,"testNormal")
-# Grapher.build_exponential([3], "testExp")
-# Grapher.build_weibull([5], "testWeibull")
-# Grapher.build_weibull([5,3], "testWeibull")
-# Grapher.build_log_normal(3,1, "testLogNormal")
-# Grapher.build_weibull_costant_beta([10,40,5], "TEST")
+

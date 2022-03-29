@@ -5,6 +5,60 @@ import random
 from Grapher import Grapher
 import numpy as np
 
+def weibull_inverse_cdf(p, k, lamb):
+    """
+        Calculate the inverse cumulative distribution function of the Weibull distribution given 
+        a p-value, k-value and lambda.
+    """
+    return lamb * ((-np.log(1-p))**(1/k))
+
+def expo_inverse_cdf(p, lamb):
+    """
+        Calculate the inverse cumulative distribution function of the Exponential distribution given 
+        a p-value lambda.
+    """
+    return (-np.log(1-p))/lamb
+
+def calculateRSquared(xList, yList):
+    """
+        Calculate the coefficent of determination of a relation given the x and y values
+    """
+    num = 0
+    dem1 = 0
+    dem2 = 0
+    yAvg = sum(yList)/len(yList)
+    xAvg = sum(xList)/len(xList)
+    
+    for i in range(len(xList)):
+        a = (xList[i] - xAvg)*(yList[i] - yAvg)
+        num += a
+        
+        b = (xList[i] - xAvg)**2
+        dem1 += b
+        
+        c = (yList[i] - yAvg)**2
+        dem2 += c
+    
+    dem = math.sqrt(dem1*dem2)
+    return (num/dem)**2
+
+def createReport(k, lamb, rSquared, file):
+    """
+        Append coefficent of determination dervied using k and lambda into the given file. (For Weibull distribution)
+    """
+    f = open("../output/reports/" + file, 'a')
+    f.write("k = " + str(k) + ", lambda = " + str(lamb) + ", R^2 = " + str(rSquared) + "\n")
+    f.close()
+    
+def createReportExpo(lamb, rSquared, file):
+    """
+        Append coefficent of determination dervied using lambda into the given file. (For Exponential distribution)
+    """
+    f = open("../output/reports/" + file, 'a')
+    f.write("lambda = " + str(lamb) + ", R^2 = " + str(rSquared) + "\n")
+    f.close()    
+    
+
 class Stat_Manager(object):
     """
         Class for managing statistics given sample data .dat files
@@ -152,12 +206,14 @@ class Stat_Manager(object):
         result = []
         listItem = self.__dat_file_contents[1]
         for i in range(len(listItem)):
-            p = i/300
-            q = lamb * (-numpy.log(1-p))**(1/k)
-            print(q)
+            p = ((i+1)-0.5)/len(listItem)
+            q = weibull_inverse_cdf(p, k, lamb)
             result.append(q)
-            
+
         Grapher.build_qq_plot(listItem, result, name)
+        return calculateRSquared(listItem, result)
+        
+
 
     def expo_quantile_calc(self, lamb, name):
         """
@@ -166,14 +222,16 @@ class Stat_Manager(object):
         result = []
         listItem = self.__dat_file_contents[1]
         for i in range(len(listItem)):
-            p = i/300
-            q = -(numpy.log(1-p))/lamb
-            print(q)
+            p = ((i+1)-0.5)/len(listItem)
+            q = expo_inverse_cdf(p, lamb)
             result.append(q)
-        
         Grapher.build_qq_plot(listItem, result, name)
+        return calculateRSquared(listItem, result)
+        
+
     
     def weibull_cdf(self,x,k,b):
+
         """
             Calculates the cumulative frequency from a weibull distribution
         """
@@ -184,6 +242,46 @@ class Stat_Manager(object):
             Calculates the cumulative frequency of an exponential distribution
         """
         return 1 - math.exp(-x*ld)
+
+    
+
+# Stat manager objects for each dataset 
+stat_man_obj_serv1 = Stat_Manager(1)
+stat_man_obj_serv22 = Stat_Manager(2)
+stat_man_obj_serv23 = Stat_Manager(3)
+stat_man_obj_ws1 = Stat_Manager(4)
+stat_man_obj_ws2 = Stat_Manager(5)
+stat_man_obj_ws3 = Stat_Manager(6)
+
+
+# DO NOT DELETE: USED FOR PARAM ESTIMATION ITERATION
+
+# for i in range(1, 50):
+#     for j in range(9000, 16000, 500):
+#         k = i/4
+#         name1 = "Inspector 1 Weibull QQ Plot, (k, lambda) = " + str(k) + ", " + str(j)
+#         name2 = "Inspector 2, Component 2 Weibull QQ Plot, (k, lambda) = " + str(k) + ", " + str(j)
+#         r1 = stat_man_obj_serv1.weibull_quantile_calc(k, j, name1)
+#         r2 = stat_man_obj_serv22.weibull_quantile_calc(k, j, name2)
+#          createReport(k, j, r1, "servinsp1_report.txt")
+#          createReport(k, j, r2, "servinsp22_report.txt")
+        
+# for i in range(1, 100):
+#     k = i/4
+#     name1 = "Inspector 2, Component 3 Exponential QQ Plot, k = " + str(k)
+#     name2 = "Workstation 1 Exponential QQ Plot, k = " + str(k)
+#     name3 = "Workstation 2 Exponential QQ Plot, k = " + str(k)
+#     name4 = "Workstation 3 Exponential QQ Plot, k = " + str(k)
+#     r1 = stat_man_obj_serv23.expo_quantile_calc(k, name1)
+#     r2 = stat_man_obj_ws1.expo_quantile_calc(k, name2)
+#     r3 = stat_man_obj_ws2.expo_quantile_calc(k, name3)
+#     r4 = stat_man_obj_ws3.expo_quantile_calc(k, name3)
+#     createReportExpo(k, r1, "servinsp23_report.txt")
+#     createReportExpo(k, r2, "ws1_report.txt")
+#     createReportExpo(k, r3, "ws2_report.txt")
+#     createReportExpo(k, r4, "ws3_report.txt")
+    
+
 
     def chi_squared_rebin(observed:list, expected:list, threshold:float)->list:
         """
