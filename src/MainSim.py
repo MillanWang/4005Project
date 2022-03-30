@@ -9,12 +9,12 @@ from Buffers import Component_Buffer_Manager
 from Workstation import Workstation
 
 # Remove/Add "#" from "# or True" to feature flags for easier enable/disable
-USER_CHOOSES_SEED = False  # or True
+USER_CHOOSES_SEED = False   or True
 ENABLE_INSPECTOR_LOGGING = False  # or True
 ENABLE_WORKSTATION_LOGGING = False  # or True
 CREATE_LOG_FILES = False  # or True
 
-TOTAL_PRODUCT_CREATION_LIMIT = 100
+TOTAL_PRODUCT_CREATION_LIMIT = 1000
 
 
 
@@ -45,7 +45,7 @@ class Simulation(object):
         self._product_counts = [0, 0, 0, 0]
         self._component_most_recent_block_time = [None, -1, -1, -1]
         self._component_total_block_time = [None, 0,0,0]
-        self._workstation_most_recent_wait_for_component_time = [None, -1, -1, -1]
+        self._workstation_most_recent_wait_for_component_time = [None, 0,0,0]
         self._workstation_total_wait_for_component_time = [None, 0,0,0]
 
     
@@ -108,10 +108,14 @@ class Simulation(object):
 
 
 
-    def process_workstation_unbuffer(self, product: Product):
+    def process_workstation_attempt_unbuffer_and_start_build(self, product: Product):
         """
             Processes attempting to start assembling a product
         """
+        # Check if the current workstation is busy
+        if self._workstations[product.value].is_building():
+            return
+
         success = self._buffer_manager.attempt_to_assemble_product(product)
         if not success:
             # Could not build the product. 1 or more missing items on workstation buffer
@@ -144,6 +148,9 @@ class Simulation(object):
             # Start the next inspection A$AP
             self._future_event_list.append((self._clock, Event_Types.Start_Next_Inspection, 1 ))
 
+        # Get the time that the workstation has waiting to start building
+        waiting_time = self._clock - self._workstation_most_recent_wait_for_component_time[product.value]
+        self._workstation_total_wait_for_component_time[product.value] += waiting_time
         
         workstation_assembly_time = self._workstations[product.value].get_product_build_time()
         self._simulation_logger.log_workstation_unbuffer(product, self._clock)
@@ -162,15 +169,24 @@ class Simulation(object):
         self._product_counts[product.value] += 1  # Product specific counter
         self._simulation_logger.log_product_created(product, self._clock)
 
-        # Try to create another product
+        self._workstations[product.value].complete_build()
+
+        # Try to create another product and note time to for waiting for component
         self._future_event_list.append((self._clock, Event_Types.Unbuffer_Start_Assembly, product))
-    
+        self._workstation_most_recent_wait_for_component_time[product.value] = self._clock
+
+
     def print_sim_summary(self):
+        """
+            Prints out a summary of the simulation
+        """
         print("Simulation Completed")
         for i in range(3):
             print("Component " + str(i+1) + " - Total blocked time : " + str(self._component_total_block_time[i+1]))
+        print("Total Component Block Time : " + str(sum(self._component_total_block_time[1:])))
         for i in range(3):
             print("Workstation " + str(i+1) + " - Total wait time : " + str(self._workstation_total_wait_for_component_time[i+1]))
+        print("Total Workstation Wait Time : " + str(sum(self._workstation_total_wait_for_component_time[1:])))
         for i in range(3):
             print("Product " + str(i+1) + " - Total created : " + str(self._product_counts[i+1]))
         print("Total products created : " + str(self._product_counts[0]))
@@ -182,7 +198,7 @@ if __name__ == "__main__":
     # set seed for random number generator
     seed = 0
     if USER_CHOOSES_SEED:
-        seed = input('Enter simulation seed:')
+        seed = int(input('Enter simulation seed:'))
     else:
         seed = int(round(time.time() * 1000))
 
@@ -203,7 +219,6 @@ if __name__ == "__main__":
         # Event Tuple Structure ( time, event_type, Product||Component||InspectorNumber )
         evt = sim.get_next_chronological_event()
         print(evt)
-
         # update clock
         sim._clock = evt[0]
 
@@ -211,7 +226,7 @@ if __name__ == "__main__":
         if evt[1] == Event_Types.Inspection_Complete:
             sim.process_inspection_completed_attempt_to_add_to_buffer(evt[2])
         elif evt[1] == Event_Types.Add_to_Buffer or evt[1] == Event_Types.Unbuffer_Start_Assembly:
-            sim.process_workstation_unbuffer(evt[2])
+            sim.process_workstation_attempt_unbuffer_and_start_build(evt[2])
         elif evt[1] == Event_Types.Assembly_Complete:
             sim.process_product_made(evt[2])
         elif evt[1] == Event_Types.Start_Next_Inspection:

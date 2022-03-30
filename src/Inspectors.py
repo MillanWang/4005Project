@@ -3,7 +3,7 @@ import os
 import random
 from Lecuyer_Generator import Lecuyer_Generator
 from SimulationEnums import Component
-
+from Stat_Manger import expo_inverse_cdf, weibull_inverse_cdf
 
 class Inspector1(object):
     """
@@ -19,8 +19,7 @@ class Inspector1(object):
         """
             Creates a inspection time delay from the distribution returns delay time and component 
         """
-        # TODO : Swap the randogen to use the inverse transform methodology
-        time =  self.__randogen.get_next_r()
+        time = weibull_inverse_cdf(self.__randogen.get_next_r(), 1, 10000)
         return time, Component.C1
 
 
@@ -51,16 +50,13 @@ class Inspector2(object):
             Creates a inspection time delay from the distribution 
             returns the delay time and the component 
         """
-        # TODO : Swap the randogen to use the inverse transform methodology
         component =  self.__generate_comp2or3()
         if component == Component.C2:
-            time = self.__randogen.get_next_r()
+            time = weibull_inverse_cdf(self.__randogen.get_next_r(), 1, 145000)
         else: 
-            time = self.__randogen.get_next_r()
+            time = expo_inverse_cdf(self.__randogen.get_next_r(), 0.000048)
         
         return time, component
-
-   
 
 
 
