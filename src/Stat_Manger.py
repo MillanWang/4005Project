@@ -56,8 +56,38 @@ def createReportExpo(lamb, rSquared, file):
     """
     f = open("../output/reports/" + file, 'a')
     f.write("lambda = " + str(lamb) + ", R^2 = " + str(rSquared) + "\n")
-    f.close()    
-    
+    f.close()
+
+
+def chi_squared_rebin(observed:list, expected:list, threshold:float)->list:
+    """
+        Rebins the given lists to combine neighbours under the threshold
+    """
+    if (len(observed)!=len(expected)):
+        raise ValueError("ERROR : chi_squared_rebin : SIZE OF OBSERVED LIST DOES NOT MATCH SIZE OF EXPECTED")
+
+    # Front compression
+    while(True):
+        if expected[0] < threshold:
+            expected[1] += expected[0]
+            observed[1] += observed[0]
+            del expected[0]
+            del observed[0]
+        else:
+            break
+
+    # Back compression
+    while(True):
+        if expected[-1] < threshold:
+            expected[-2] += expected[-1]
+            observed[-2] += observed[-1]
+            del expected[-1]
+            del observed[-1]
+        else:
+            break
+        
+
+    return [observed, expected]
 
 class Stat_Manager(object):
     """
@@ -280,38 +310,6 @@ stat_man_obj_ws3 = Stat_Manager(6)
 #     createReportExpo(k, r2, "ws1_report.txt")
 #     createReportExpo(k, r3, "ws2_report.txt")
 #     createReportExpo(k, r4, "ws3_report.txt")
-    
-
-
-    def chi_squared_rebin(observed:list, expected:list, threshold:float)->list:
-        """
-            Rebins the given lists to combine neighbours under the threshold
-        """
-        if (len(observed)!=len(expected)):
-            raise ValueError("ERROR : chi_squared_rebin : SIZE OF OBSERVED LIST DOES NOT MATCH SIZE OF EXPECTED")
-
-        # Front compression
-        while(True):
-            if expected[0] < threshold:
-                expected[1] += expected[0]
-                observed[1] += observed[0]
-                del expected[0]
-                del observed[0]
-            else:
-                break
-
-        # Back compression
-        while(True):
-            if expected[-1] < threshold:
-                expected[-2] += expected[-1]
-                observed[-2] += observed[-1]
-                del expected[-1]
-                del observed[-1]
-            else:
-                break
-            
-
-        return [observed, expected]
 
 
 #Test1 = Stat_Manager(1)

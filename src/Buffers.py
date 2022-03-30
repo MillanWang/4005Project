@@ -63,9 +63,9 @@ class Component_Buffer_Manager(object):
             if buffer_choice == 0:
                 return self._buffer_dict[(Component.C1, Product.P1)].attempt_to_add_to_buffer(), Product.P1
             elif buffer_choice == 1:
-                return self._buffer_dict[(Component.C1, Product.P1)].attempt_to_add_to_buffer(), Product.P2
+                return self._buffer_dict[(Component.C1, Product.P2)].attempt_to_add_to_buffer(), Product.P2
             elif buffer_choice == 2:
-                return self._buffer_dict[(Component.C1, Product.P1)].attempt_to_add_to_buffer(), Product.P3
+                return self._buffer_dict[(Component.C1, Product.P3)].attempt_to_add_to_buffer(), Product.P3
 
             # Should never get here. Error if we do
             raise ValueError("Internal buffer manager error attempting to add component C1 to a buffer")

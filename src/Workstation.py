@@ -3,6 +3,7 @@ import numpy
 import os
 from Lecuyer_Generator import Lecuyer_Generator
 from SimulationEnums import Product
+from Stat_Manger import expo_inverse_cdf
 
 class Workstation(object):
     """
@@ -26,11 +27,11 @@ class Workstation(object):
         self.__currently_building = True
         # TODO Send these randogens through an inverse transform to get the randovar
         if (self.__product== Product.P1):
-            return self.__randogen.get_next_r()
-        elif (self.__product== Product.P1):
-            return self.__randogen.get_next_r()
-        elif (self.__product== Product.P1):
-            return self.__randogen.get_next_r()
+            return expo_inverse_cdf(self.__randogen.get_next_r(), 0.00021)
+        elif (self.__product== Product.P2):
+            return expo_inverse_cdf(self.__randogen.get_next_r(), 0.000085)
+        elif (self.__product== Product.P3):
+            return expo_inverse_cdf(self.__randogen.get_next_r(), 0.00011)
     
     def complete_build(self) -> None:
         self.__currently_building = False
@@ -40,4 +41,3 @@ class Workstation(object):
             Returns the self.__currently_building field
         """
         return self.__currently_building
-
