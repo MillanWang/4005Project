@@ -1,3 +1,4 @@
+import random
 import time
 import numpy as np
 import queue
@@ -9,7 +10,7 @@ from Buffers import Component_Buffer_Manager
 from Workstation import Workstation
 
 # Remove/Add "#" from "# or True" to feature flags for easier enable/disable
-USER_CHOOSES_SEED = False   or True
+USER_CHOOSES_SEED = False # or True
 ENABLE_INSPECTOR_LOGGING = False  # or True
 ENABLE_WORKSTATION_LOGGING = False  # or True
 CREATE_LOG_FILES = False  # or True
@@ -180,56 +181,58 @@ class Simulation(object):
         """
             Prints out a summary of the simulation
         """
-        print("Simulation Completed")
-        for i in range(3):
-            print("Component " + str(i+1) + " - Total blocked time : " + str(self._component_total_block_time[i+1]))
-        print("Total Component Block Time : " + str(sum(self._component_total_block_time[1:])))
-        for i in range(3):
-            print("Workstation " + str(i+1) + " - Total wait time : " + str(self._workstation_total_wait_for_component_time[i+1]))
-        print("Total Workstation Wait Time : " + str(sum(self._workstation_total_wait_for_component_time[1:])))
-        for i in range(3):
-            print("Product " + str(i+1) + " - Total created : " + str(self._product_counts[i+1]))
-        print("Total products created : " + str(self._product_counts[0]))
+        print(str(self._workstation_total_wait_for_component_time[1]))
+        # print("\n\nSimulation Completed")
+        # for i in range(3):
+        #     print("Component " + str(i+1) + " - Total blocked time : " + str(self._component_total_block_time[i+1]))
+        # print("Total Component Block Time : " + str(sum(self._component_total_block_time[1:])))
+        # for i in range(3):
+        #     print("Workstation " + str(i+1) + " - Total wait time : " + str(self._workstation_total_wait_for_component_time[i+1]))
+        # print("Total Workstation Wait Time : " + str(sum(self._workstation_total_wait_for_component_time[1:])))
+        # for i in range(3):
+        #     print("Product " + str(i+1) + " - Total created : " + str(self._product_counts[i+1]))
+        # print("Total products created : " + str(self._product_counts[0]))
 
 
 # Main script
 if __name__ == "__main__":
+    for i in range(25):
+        # set seed for random number generator
+        seed = 0
+        if USER_CHOOSES_SEED:
+            seed = int(input('Enter simulation seed:'))
+        else:
+            seed = random.randint(21, 223556762)
 
-    # set seed for random number generator
-    seed = 0
-    if USER_CHOOSES_SEED:
-        seed = int(input('Enter simulation seed:'))
-    else:
-        seed = int(round(time.time() * 1000))
+        sim_logger = SimulationLogger(
+            ENABLE_INSPECTOR_LOGGING,
+            ENABLE_WORKSTATION_LOGGING,
+            CREATE_LOG_FILES)
 
-    sim_logger = SimulationLogger(
-        ENABLE_INSPECTOR_LOGGING,
-        ENABLE_WORKSTATION_LOGGING,
-        CREATE_LOG_FILES)
+        # Create simulation object
+        sim = None
+        sim = Simulation(sim_logger, seed)
 
-    # Create simulation object
-    sim = Simulation(sim_logger, seed)
+        # Schedule first inspection completion for both inspectors I1 & I2
+        sim.start_inspection_schedule_add_to_buffer(1)
+        sim.start_inspection_schedule_add_to_buffer(2)
 
-    # Schedule first inspection completion for both inspectors I1 & I2
-    sim.start_inspection_schedule_add_to_buffer(1)
-    sim.start_inspection_schedule_add_to_buffer(2)
+        while sim._product_counts[0] <= TOTAL_PRODUCT_CREATION_LIMIT:
+            # Get next event
+            # Event Tuple Structure ( time, event_type, Product||Component||InspectorNumber )
+            evt = sim.get_next_chronological_event()
+            # print(evt)
+            # update clock
+            sim._clock = evt[0]
 
-    while sim._product_counts[0] <= TOTAL_PRODUCT_CREATION_LIMIT:
-        # Get next event
-        # Event Tuple Structure ( time, event_type, Product||Component||InspectorNumber )
-        evt = sim.get_next_chronological_event()
-        print(evt)
-        # update clock
-        sim._clock = evt[0]
+            #Update event type discernation
+            if evt[1] == Event_Types.Inspection_Complete:
+                sim.process_inspection_completed_attempt_to_add_to_buffer(evt[2])
+            elif evt[1] == Event_Types.Add_to_Buffer or evt[1] == Event_Types.Unbuffer_Start_Assembly:
+                sim.process_workstation_attempt_unbuffer_and_start_build(evt[2])
+            elif evt[1] == Event_Types.Assembly_Complete:
+                sim.process_product_made(evt[2])
+            elif evt[1] == Event_Types.Start_Next_Inspection:
+                sim.start_inspection_schedule_add_to_buffer(evt[2])
 
-        #Update event type discernation
-        if evt[1] == Event_Types.Inspection_Complete:
-            sim.process_inspection_completed_attempt_to_add_to_buffer(evt[2])
-        elif evt[1] == Event_Types.Add_to_Buffer or evt[1] == Event_Types.Unbuffer_Start_Assembly:
-            sim.process_workstation_attempt_unbuffer_and_start_build(evt[2])
-        elif evt[1] == Event_Types.Assembly_Complete:
-            sim.process_product_made(evt[2])
-        elif evt[1] == Event_Types.Start_Next_Inspection:
-            sim.start_inspection_schedule_add_to_buffer(evt[2])
-
-sim.print_sim_summary()
+        sim.print_sim_summary()
