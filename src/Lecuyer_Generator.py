@@ -114,5 +114,5 @@ def run_autocorrelation_test():
 
 
 
-run_kolmogorov_smirnov_test()
-run_autocorrelation_test()
+# run_kolmogorov_smirnov_test()
+# run_autocorrelation_test()

@@ -18,3 +18,4 @@ class Event_Types(enum.Enum):
     Add_to_Buffer = 2
     Unbuffer_Start_Assembly = 3
     Assembly_Complete = 4
+    Start_Next_Inspection = 5
