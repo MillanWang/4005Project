@@ -1,6 +1,8 @@
+import time
 import numpy as np
 import queue
 from Inspectors import Inspector1, Inspector2
+from Lecuyer_Generator import Lecuyer_Generator
 from SimulationEnums import Component, Product, Event_Types
 from SimulationLogger import SimulationLogger
 from Buffers import Component_Buffer_Manager
@@ -17,27 +19,36 @@ TOTAL_PRODUCT_CREATION_LIMIT = 100
 
 
 class Simulation(object):
-    def __init__(self, simulation_logger: SimulationLogger):
+    def __init__(self, simulation_logger: SimulationLogger, seed : int):
         self._clock = 0
         self._simulation_logger = simulation_logger
 
         #Using a list instead of a queue because the order that events occur may not be chronological
         self._future_event_list = []
 
-        # [Total, P1, P2, P3] - index matches product
-        self._product_counts = [0, 0, 0, 0]
+        
+
+        randogen = Lecuyer_Generator(seed)
 
         # [None, I1, I2] so inspector number matches index
-        self._inspectors = [None, Inspector1(), Inspector2()]
+        self._inspectors = [None, Inspector1(randogen), Inspector2(randogen)]
 
         # [None, W1, W2, W3] so workstation number match index
         self._workstations = [None, 
-                              Workstation(Product.P1),
-                              Workstation(Product.P2),
-                              Workstation(Product.P3)] 
+                              Workstation(Product.P1,randogen),
+                              Workstation(Product.P2,randogen),
+                              Workstation(Product.P3,randogen)] 
 
         self._buffer_manager = Component_Buffer_Manager()
 
+        # [Total, P1, P2, P3] - index matches product
+        self._product_counts = [0, 0, 0, 0]
+        self._component_most_recent_block_time = [None, -1, -1, -1]
+        self._component_total_block_time = [None, 0,0,0]
+        self._workstation_most_recent_wait_for_component_time = [None, -1, -1, -1]
+        self._workstation_total_wait_for_component_time = [None, 0,0,0]
+
+    
 
     def get_next_chronological_event(self):
         """
@@ -59,7 +70,7 @@ class Simulation(object):
 
 
 
-    def schedule_add_to_buffer(self, inspector_number: int):
+    def start_inspection_schedule_add_to_buffer(self, inspector_number: int):
         """
             Initiates an inspector's inspection process and schedules 
             the attempt to add the component to the buffer
@@ -73,21 +84,27 @@ class Simulation(object):
 
 
 
-    def process_add_to_buffer(self, component: Component):
+    def process_inspection_completed_attempt_to_add_to_buffer(self, component: Component):
         """
             Processes attempting to add an inspected component to a buffer
         """
         # If successful, the buffers will be updated accordingly by calling this
         success, product = self._buffer_manager.attempt_to_add_to_buffer(component)
 
-        if not success:
+        if not success: 
             # Inspector is blocked and can't add to buffer right now
-            # TODO: Add some behavior that tracks the inspector stuck time
+            # Set the current time as the most recent block time
+            self._component_most_recent_block_time[component.value] = self._clock
             return
+
+        # If successfully put component onto buffer, start to inspect again A$AP
+        self._future_event_list.append((self._clock, Event_Types.Start_Next_Inspection, 1 if component==Component.C1 else 2))
 
         # Schedule event for adding to buffer A$AP
         self._simulation_logger.log_inspector_buffered_component(component, product, self._clock)
         self._future_event_list.append((self._clock, Event_Types.Add_to_Buffer, product))
+
+
 
 
 
@@ -100,9 +117,35 @@ class Simulation(object):
             # Could not build the product. 1 or more missing items on workstation buffer
             # Will eventually be successful once buffers get occupied
             return
-        # SUCCESSFUL HERE : TODO: Add behavior to track inspector possibly getting unstuck
+        # Successfully unbuffered
+
+        # Check if inspector 2 is waiting for a buffer spot 
+        if product!=Product.P1 and self._component_most_recent_block_time[product.value]!=-1:
+            # Component 2 or 3 get's buffered, resume Inspector 2
+            self._buffer_manager.attempt_to_add_to_buffer(Component.C2 if product==Product.P2 else Component.C3)
+
+            # Track the blocked time
+            blocked_time = self._clock - self._component_most_recent_block_time[product.value]
+            self._component_total_block_time[product.value] += blocked_time
+            # Reset the most recent block time to unblocked
+            self._component_most_recent_block_time[product.value]!=-1
+            # Start inspector 2 next inspection A$AP
+            self._future_event_list.append((self._clock, Event_Types.Start_Next_Inspection, 2))
         
-        workstation_assembly_time = self._workstations[product.value].get_assembly_time()
+        # Check if inspector 1 is waiting for a buffer spot 
+        if self._component_most_recent_block_time[1]!=-1:
+            # All products use component 1. Add it to the buffer if inspector 1 is stuck. Resume inspector 1
+            self._buffer_manager.attempt_to_add_to_buffer(Component.C1)
+            # Track the blocked time
+            blocked_time = self._clock - self._component_most_recent_block_time[1]
+            self._component_total_block_time[1] += blocked_time
+            # Reset the most recent block time to unblocked
+            self._component_most_recent_block_time[1]!=-1
+            # Start the next inspection A$AP
+            self._future_event_list.append((self._clock, Event_Types.Start_Next_Inspection, 1 ))
+
+        
+        workstation_assembly_time = self._workstations[product.value].get_product_build_time()
         self._simulation_logger.log_workstation_unbuffer(product, self._clock)
         
         # Schedule event for completing assembly
@@ -121,6 +164,16 @@ class Simulation(object):
 
         # Try to create another product
         self._future_event_list.append((self._clock, Event_Types.Unbuffer_Start_Assembly, product))
+    
+    def print_sim_summary(self):
+        print("Simulation Completed")
+        for i in range(3):
+            print("Component " + str(i+1) + " - Total blocked time : " + str(self._component_total_block_time[i+1]))
+        for i in range(3):
+            print("Workstation " + str(i+1) + " - Total wait time : " + str(self._workstation_total_wait_for_component_time[i+1]))
+        for i in range(3):
+            print("Product " + str(i+1) + " - Total created : " + str(self._product_counts[i+1]))
+        print("Total products created : " + str(self._product_counts[0]))
 
 
 # Main script
@@ -130,7 +183,8 @@ if __name__ == "__main__":
     seed = 0
     if USER_CHOOSES_SEED:
         seed = input('Enter simulation seed:')
-    np.random.seed((int(seed)))
+    else:
+        seed = int(round(time.time() * 1000))
 
     sim_logger = SimulationLogger(
         ENABLE_INSPECTOR_LOGGING,
@@ -138,25 +192,29 @@ if __name__ == "__main__":
         CREATE_LOG_FILES)
 
     # Create simulation object
-    sim = Simulation(sim_logger)
+    sim = Simulation(sim_logger, seed)
 
     # Schedule first inspection completion for both inspectors I1 & I2
-    sim.schedule_add_to_buffer(1)
-    sim.schedule_add_to_buffer(2)
+    sim.start_inspection_schedule_add_to_buffer(1)
+    sim.start_inspection_schedule_add_to_buffer(2)
 
     while sim._product_counts[0] <= TOTAL_PRODUCT_CREATION_LIMIT:
         # Get next event
-        # Event Tuple Structure ( time, event_type, Product||Component )
+        # Event Tuple Structure ( time, event_type, Product||Component||InspectorNumber )
         evt = sim.get_next_chronological_event()
+        print(evt)
 
         # update clock
         sim._clock = evt[0]
 
         #Update event type discernation
         if evt[1] == Event_Types.Inspection_Complete:
-            sim.process_add_to_buffer(evt[2])
+            sim.process_inspection_completed_attempt_to_add_to_buffer(evt[2])
         elif evt[1] == Event_Types.Add_to_Buffer or evt[1] == Event_Types.Unbuffer_Start_Assembly:
             sim.process_workstation_unbuffer(evt[2])
         elif evt[1] == Event_Types.Assembly_Complete:
             sim.process_product_made(evt[2])
+        elif evt[1] == Event_Types.Start_Next_Inspection:
+            sim.start_inspection_schedule_add_to_buffer(evt[2])
 
+sim.print_sim_summary()
