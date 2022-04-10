@@ -15,7 +15,7 @@ class Inspector1(object):
         """
         self.__randogen = randogen
     
-    def generate_inspect_time(self) -> float:
+    def generate_inspect_time(self, component:Component) -> float:
         """
             Creates a inspection time delay from the distribution returns delay time and component 
         """
@@ -45,12 +45,17 @@ class Inspector2(object):
         else:
             return Component.C3
     
-    def generate_inspect_time(self) -> float:
+    def generate_inspect_time(self, component:Component) -> float:
         """
             Creates a inspection time delay from the distribution 
             returns the delay time and the component 
         """
-        component =  self.__generate_comp2or3()
+        
+        # Standard operating policy, randomly select next component to inspect
+        # Alt operating policy, the buffers will determine next component to select and pass it in as a param
+        if component == None:
+            component =  self.__generate_comp2or3()
+
         if component == Component.C2:
             time = weibull_inverse_cdf(self.__randogen.get_next_r(), 1, 145000)
         else: 

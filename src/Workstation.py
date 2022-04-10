@@ -25,7 +25,6 @@ class Workstation(object):
             returns the build time time
         """
         self.__currently_building = True
-        # TODO Send these randogens through an inverse transform to get the randovar
         if (self.__product== Product.P1):
             return expo_inverse_cdf(self.__randogen.get_next_r(), 0.00021)
         elif (self.__product== Product.P2):

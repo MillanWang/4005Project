@@ -1,4 +1,5 @@
 import random
+import statistics
 import time
 import numpy as np
 import queue
@@ -9,13 +10,15 @@ from SimulationLogger import SimulationLogger
 from Buffers import Component_Buffer_Manager
 from Workstation import Workstation
 
+
 # Remove/Add "#" from "# or True" to feature flags for easier enable/disable
 USER_CHOOSES_SEED = False # or True
 ENABLE_INSPECTOR_LOGGING = False  # or True
 ENABLE_WORKSTATION_LOGGING = False  # or True
 CREATE_LOG_FILES = False  # or True
+USE_ALTERNATE_OPERATING_POLICY = False# or True
 
-TOTAL_PRODUCT_CREATION_LIMIT = 1000*50
+TOTAL_PRODUCT_CREATION_LIMIT = 1000*100
 SIMULATION_REPLICATION_COUNT = 500
 
 
@@ -78,7 +81,7 @@ class Simulation(object):
             Initiates an inspector's inspection process and schedules 
             the attempt to add the component to the buffer
         """
-        inspect_time, component = self.__inspectors[inspector_number].generate_inspect_time()
+        inspect_time, component = self.__inspectors[inspector_number].generate_inspect_time( self.__buffer_manager.choose_next_inspector2_component() if USE_ALTERNATE_OPERATING_POLICY else None)
         self.__simulation_logger.log_inspector_component_selection(component, self.clock)
 
         # Note that the component is being  inspected
@@ -236,6 +239,13 @@ class Simulation(object):
 
 # Main script
 if __name__ == "__main__":
+    start = time.time()
+    print("Simulation in progress, started at "+ str(start))
+    print("Operating policy : "+ "Alternate, Inspector 2 inspects based on buffers" if USE_ALTERNATE_OPERATING_POLICY else "Standard, Inspector 2 randomly inspects")
+    print("Number of products to make before stopping : " + str(TOTAL_PRODUCT_CREATION_LIMIT))
+    print("Number of simulation replications: " + str(SIMULATION_REPLICATION_COUNT))
+    print()
+    
     component_specific_block_times = [[],[],[]]
     for i in range(1,SIMULATION_REPLICATION_COUNT+1):
         # set seed for random number generator
@@ -281,6 +291,14 @@ if __name__ == "__main__":
         component_specific_block_times[0].append(current_sim_average_block_times[0])
         component_specific_block_times[1].append(current_sim_average_block_times[1])
         component_specific_block_times[2].append(current_sim_average_block_times[2])
+
+    #TOTAL SIM STATS - TIER 2 INTERSIM STATS
     for i in range(3):
-        print("Component #"+str(i+1))
-        print(component_specific_block_times[i])
+        print("Component #"+str(i+1)+" Average waiting time")
+        print("Mean: " + str(statistics.mean(component_specific_block_times[i])))
+        print("Standard deviation: " + str(statistics.stdev(component_specific_block_times[i])))
+        print("n: " + str(len(component_specific_block_times[i])))
+        print()
+    
+    end = time.time()
+    print("Simulation time : " + str(end - start))
